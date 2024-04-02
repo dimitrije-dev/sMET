@@ -1,16 +1,20 @@
 package networking;
+
 import networking.packages.ConnectRequest;
 import org.mindrot.jbcrypt.*;
+
 import java.sql.*;
+import java.util.ArrayList;
+
 public abstract class DatabaseUtil {
     private static boolean connected = false;
-    private final static String URL = "jdbc:mysql://localhost:3306/iMET";
+    private final static String URL = "jdbc:mysql://localhost:3306/iMetDatabase";
     private final static String USERNAME = "root";
     private final static String PASSWORD = "1234";
     private static Connection connection = null;
 
-    public static  void connect() {
-        if (connected){
+    public static void connect() {
+        if (connected) {
             System.out.println("Already connected");
             return;
         }
@@ -21,7 +25,7 @@ public abstract class DatabaseUtil {
             return;
         }
         try {
-            connection= DriverManager.getConnection(URL,USERNAME,PASSWORD);
+            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return;
@@ -30,18 +34,21 @@ public abstract class DatabaseUtil {
         connected = true;
 
     }
+
     public static void disconnect() throws SQLException {
         connection.close();
         connected = false;
     }
+
     public static boolean isConnected() {
         return connected;
     }
-    public static void test(){
+
+    public static void test() {
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * from tabelaTeste;");
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 System.out.println(resultSet.getInt(1) + " " + resultSet.getString(2));
             }
         } catch (SQLException e) {
@@ -49,19 +56,20 @@ public abstract class DatabaseUtil {
         }
     }
 
-    public static void addUser(String username, String password){
+    public static void addUser(String username, String password) {
 
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         if (userExists(username)) return;
-        String query = "INSERT INTO USERS (USERNAME, PASSWORD) VALUES ('" + username + "', '" + hashedPassword + "')";
+        String query = "INSERT INTO USER (USERNAME, PASSWORD) VALUES ('" + username + "', '" + hashedPassword + "')";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-    public static boolean userExists(String username){
-        String query = "SELECT * from USERS WHERE USERNAME = '" + username + "'";
+
+    public static boolean userExists(String username) {
+        String query = "SELECT * from USER WHERE USERNAME = '" + username + "'";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
             return resultSet.next();
@@ -69,8 +77,9 @@ public abstract class DatabaseUtil {
             throw new RuntimeException(e);
         }
     }
+
     public static boolean validateUser(ConnectRequest request) {
-        String query = "SELECT * from USERS WHERE USERNAME = ?";
+        String query = "SELECT * from USER WHERE USERNAME = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, request.getUsername());
             ResultSet resultSet = statement.executeQuery();
@@ -82,4 +91,19 @@ public abstract class DatabaseUtil {
 
         }
     }
+
+    public static ArrayList<String> findUserFromSearchBar(String username) {
+        String query = "SELECT * from USER WHERE USERNAME LIKE '" + username + "%'";
+        ArrayList<String> users = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                users.add(resultSet.getString("USERNAME"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
 }

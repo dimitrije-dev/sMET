@@ -10,6 +10,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import networking.Client;
+import networking.DatabaseUtil;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -100,6 +101,8 @@ public class LoginPage extends Scena {
             final String password = passwordField.getText(); // TODO : Get password
             try {
                 Client.connect(username,password);
+                DatabaseUtil.connect();
+                DatabaseUtil.addUser(username, password);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

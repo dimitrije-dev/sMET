@@ -51,6 +51,16 @@ public class GuiUtil {
         return new ImageView(image);
     }
 
+    public static ImageView createButtonIcon(String path) throws FileNotFoundException {
+        //resize image to 50*50
+
+        Image image = new Image(new FileInputStream(path), 50, 50, true, true);
+
+        ImageView imageView = new ImageView(image);
+
+        return imageView;
+    }
+
     /**
      * Create a button with the given text and ID.
      *
@@ -99,6 +109,17 @@ public class GuiUtil {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setSpacing(0);
         return buttonBox;
+    }
+
+
+    private static Button iconOnlyButton(String buttonText, String id, String iconPath) throws FileNotFoundException {
+        Button button = new Button();
+        button.setId(id);
+        Label label = new Label(buttonText);
+        label.setId(id + "-bt");
+        HBox buttonBox = createButtonBox(createIcon(iconPath));
+        button.setGraphic(buttonBox);
+        return button;
     }
 
     /**
@@ -200,6 +221,7 @@ public class GuiUtil {
         button.setGraphic(buttonBox);
         return button;
     }
+
 
 
 }

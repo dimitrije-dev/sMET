@@ -129,3 +129,7 @@
     -fx-background-radius: 10;
     -fx-max-width: 200;
 }
+list-view{
+    -fx-background-color: transparent;
+    -fx-border-color: red;
+}

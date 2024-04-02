@@ -12,27 +12,34 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.effect.Glow;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import networking.DatabaseUtil;
 
+import java.awt.*;
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Objects;
 
 
 public class Feed extends Scena {
     private static Stage stage;
     private static final Rectangle2D bounds = screen.getVisualBounds();
+
     public static Feed instance2;
+    private static ListView<String> listView = new ListView<>();
     private static final VBox mainPart = new VBox();
 
-    private static final TextArea textArea = new TextArea();
 
+    private static ArrayList<String> usernamesOfSearch = null;
+
+    private static final TextArea textArea = new TextArea();
 
 
     static {
@@ -42,6 +49,7 @@ public class Feed extends Scena {
             e.printStackTrace();
         }
     }
+
 
     public Feed() throws FileNotFoundException {
         super(root());
@@ -56,14 +64,13 @@ public class Feed extends Scena {
     private static Parent root() throws FileNotFoundException {
         HBox hBox = new HBox();
         hBox.getStyleClass().add("border-pane");
-        CustomMenuBar menuBar = new CustomMenuBar("active-button-menu-bar","inactive-button-menu-bar","inactive-button-menu-bar","inactive-button-menu-bar","inactive-button-menu-bar");
-        AnchorPane anchorPane= menuBar.getCustomMenuBar();
+        CustomMenuBar menuBar = new CustomMenuBar("active-button-menu-bar", "inactive-button-menu-bar", "inactive-button-menu-bar", "inactive-button-menu-bar", "inactive-button-menu-bar");
+        AnchorPane anchorPane = menuBar.getCustomMenuBar();
         hBox.getChildren().addAll(anchorPane, mainPart(), secondPart());
 
 
         return hBox;
     }
-
 
 
     private static ScrollPane mainPart() throws FileNotFoundException {
@@ -87,7 +94,9 @@ public class Feed extends Scena {
 
         anchorPane.setMinHeight(130);
         anchorPane.setMaxHeight(130);
-        mainPart.getChildren().addAll(searchBar(),anchorPane,defaultPost());
+
+        mainPart.getChildren().addAll(searchBar(), listOfUsers(), anchorPane, defaultPost());
+
 
         return scrollPane;
     }
@@ -99,8 +108,57 @@ public class Feed extends Scena {
         searchBar.setMinHeight(50);
         searchBar.setMaxHeight(50);
         searchBar.setPromptText("Search sMet");
+        searchBar.setOnKeyTyped(event -> {
+            updateListOfUsers(searchBar);
+        });
         return searchBar;
     }
+
+    private static void updateListOfUsers(TextField searchBar) {
+        System.out.println(searchBar.getText());
+        if (searchBar.getText().isEmpty()) {
+            listView.setMinHeight(0);
+            listView.getItems().clear();
+        } else {
+            usernamesOfSearch = DatabaseUtil.findUserFromSearchBar(searchBar.getText());
+            System.out.println(usernamesOfSearch);
+            for (int j = 0; j < usernamesOfSearch.size(); j++) {
+                String user = usernamesOfSearch.get(j);
+                if (listView.getItems().contains("@" + user))
+                    continue;
+                listView.getItems().add("@" + user);
+
+            }
+            listView.setMinHeight(usernamesOfSearch.size() * 20);
+        }
+
+
+
+    }
+
+    private static Node listOfUsers() {
+
+        listView = new ListView<>();
+        listView.setMaxWidth(600);
+        listView.setMinWidth(600);
+        listView.setMaxHeight(0);
+
+        listView.setBackground(new Background( new BackgroundFill( Paint.valueOf("#66000000"), CornerRadii.EMPTY, Insets.EMPTY ) ) );
+//        listView.setOpacity(0.1);
+        listView.getStyleClass().add("list-view");
+        listView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && !listView.getSelectionModel().isEmpty()) {
+                String selectedItem = listView.getSelectionModel().getSelectedItem();
+                System.out.println(selectedItem);
+                stage.setScene(ProfilePage.instance);
+
+                GuiUtil.relocate(ProfilePage.instance);
+            }
+        });
+
+        return listView;
+    }
+
 
     private static VBox secondPart() {
         VBox secondPart = new VBox();
@@ -108,12 +166,11 @@ public class Feed extends Scena {
         secondPart.setMinWidth(bounds.getWidth() * 0.1875);
         secondPart.setMaxWidth(bounds.getWidth() * 0.1875);
 
-        secondPart.getChildren().add(profileBox("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/icons/avatar-48x48.png","Admin Team"));
+        secondPart.getChildren().add(profileBox("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/icons/avatar-48x48.png", "Admin Team"));
 
 
         return secondPart;
     }
-
 
 
     private static AnchorPane postMakerArea() throws FileNotFoundException {
@@ -135,8 +192,8 @@ public class Feed extends Scena {
         return anchorPane;
     }
 
-    private static Node sendButton () throws FileNotFoundException {
-        Button sendButton = GuiUtil.createButtonTextIcon("POST    ", "send-button","/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/icons/send.png");
+    private static Node sendButton() throws FileNotFoundException {
+        Button sendButton = GuiUtil.createButtonTextIcon("POST    ", "send-button", "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/icons/send.png");
         sendButton.getStyleClass().add("send-button");
         GuiUtil.buttonScaleTransition(sendButton);
 
@@ -159,7 +216,6 @@ public class Feed extends Scena {
     }
 
 
-
     /**
      * Sets the primary stage for the application.
      *
@@ -180,11 +236,11 @@ public class Feed extends Scena {
 
     private static void post() {
         try {
-            TextPost textPost = new TextPost(textArea.getText(),"Dimitrije Milenkovic", "@dmi", getCurrentDateTime());
+            TextPost textPost = new TextPost(textArea.getText(), "Dimitrije Milenkovic", "@dmi", getCurrentDateTime());
             if (!textArea.getText().isEmpty()) {
                 mainPart.getChildren().add(textPost);
                 textArea.clear();
-            }else {
+            } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setHeaderText(null);
@@ -198,6 +254,7 @@ public class Feed extends Scena {
         }
 
     }
+
     private static String getCurrentDateTime() {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -205,7 +262,7 @@ public class Feed extends Scena {
     }
 
     private static TextPost defaultPost() throws FileNotFoundException {
-        return new TextPost("Hello World!","Admin Team", "@smet", getCurrentDateTime());
+        return new TextPost("Hello World!", "Admin Team", "@smet", getCurrentDateTime());
     }
 
     public static HBox profileBox(String profilePictureAvatarPath, String username) {
@@ -225,7 +282,7 @@ public class Feed extends Scena {
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setPadding(new Insets(10, 10, 10, 10));
 
-        GuiUtil.applyScaleTransition(hBox,0.95,0.95,200,300);
+        GuiUtil.applyScaleTransition(hBox, 0.95, 0.95, 200, 300);
         hBox.setOnMouseClicked(mouseEvent -> {
             stage.setScene(ProfilePage.instance);
             GuiUtil.relocate(ProfilePage.instance);
@@ -234,7 +291,5 @@ public class Feed extends Scena {
 
         return hBox;
     }
-
-
-
 }
+

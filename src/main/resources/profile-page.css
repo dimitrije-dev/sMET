@@ -53,7 +53,9 @@
     -fx-font-size: 30px;
     -fx-text-fill: #d0013a;
 }
-
+.settings-button {
+    -fx-background-color: transparent;
+}
 #inactive-button-menu-bar {
     -fx-background-color: transparent;
     -fx-border-color: transparent #EDF2F4 transparent transparent;
@@ -84,5 +86,8 @@
     -fx-text-fill: #d0013a;
 }
 .main-part {
+    -fx-background-color: #24273f;
+}
+.profile_picture_panel {
     -fx-background-color: #24273f;
 }

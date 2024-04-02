@@ -26,7 +26,7 @@ public class Main extends Application {
     public void start(Stage stage) {
         setPrimStageForAll(stage);
         stage.setScene(LoginPage.instance);
-        stage.setResizable(false);
+        stage.setResizable(true);
         stage.show();
     }
 
