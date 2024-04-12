@@ -50,7 +50,12 @@ public class GuiUtil {
         Image image = new Image(new FileInputStream(path));
         return new ImageView(image);
     }
-
+    /**
+     * resize image to 50*50
+     *
+     * @param  path	path of the image file
+     * @return         	an ImageView with the resized image
+     */
     public static ImageView createButtonIcon(String path) throws FileNotFoundException {
         //resize image to 50*50
 
@@ -111,7 +116,14 @@ public class GuiUtil {
         return buttonBox;
     }
 
-
+    /**
+     * A description of the entire Java function.
+     *
+     * @param  buttonText  description of parameter
+     * @param  id         description of parameter
+     * @param  iconPath   description of parameter
+     * @return           description of return value
+     */
     private static Button iconOnlyButton(String buttonText, String id, String iconPath) throws FileNotFoundException {
         Button button = new Button();
         button.setId(id);
@@ -184,14 +196,23 @@ public class GuiUtil {
         node.setOnMouseEntered((MouseEvent mouseEvent) -> scaleTransitionEnter.playFromStart());
         node.setOnMouseExited((MouseEvent mouseEvent) -> scaleTransitionExit.playFromStart());
     }
-
+    /**
+     * A description of the entire Java function.
+     *
+     * @param  scene	description of parameter
+     * @return         	description of return value
+     */
     public static void relocate(Scene scene) {
         if (stage != null) {
             stage.setX((bounds.getWidth() - scene.getWidth()) / 2);
             stage.setY((bounds.getHeight() - scene.getHeight()) / 2);
         }
     }
-
+    /**
+     * Set the primary stage for the application.
+     *
+     * @param  stage	The primary stage for the application
+     */
     public static void setPrimaryStage(Stage stage) {
         GuiUtil.stage = stage;
     }
@@ -204,7 +225,14 @@ public class GuiUtil {
     public static Stage getPrimaryStage() {
         return stage;
     }
-
+    /**
+     * A description of the entire Java function.
+     *
+     * @param  buttonText    description of parameter
+     * @param  id            description of parameter
+     * @param  icon          description of parameter
+     * @return               description of return value
+     */
     public static Button createButtonMenu(String buttonText, String id, String icon) throws FileNotFoundException {
         Button button = new Button();
         button.setId(id);

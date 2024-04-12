@@ -29,6 +29,11 @@ public class MessangerPage extends Scena{
         }
 
     }
+    /**
+     * A description of the entire Java function.
+     *
+     * @return         description of return value
+     */
     private static Parent root() throws FileNotFoundException {
         HBox hBox = new HBox();
         CustomMenuBar menuBar = new CustomMenuBar("inactive-button-menu-bar",
@@ -38,7 +43,11 @@ public class MessangerPage extends Scena{
         hBox.getChildren().addAll(anchorPane);
         return hBox;
     }
-
+    /**
+     * Set the primary stage for the MessangerPage.
+     *
+     * @param  stage  the primary stage to be set
+     */
     public static void setPrimaryStage(Stage stage) {
         MessangerPage.stage = stage;
     }

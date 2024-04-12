@@ -47,7 +47,11 @@ public class CustomMenuBar {
 
         Node messangerBtn = createButton(messangerString, messagesButtonStyle, messagesIconPath, () -> switchScene(MessangerPage.instance));
 
-        Node profileBtn = createButton(profileString, profileButtonStyle, profileIconPath, () -> switchScene(ProfilePage.instance));
+        Node profileBtn = createButton(profileString, profileButtonStyle, profileIconPath, () -> {
+            ProfilePage.username = Client.getUsername();
+            ProfilePage.usernameLabel.setText(ProfilePage.username);
+            switchScene(ProfilePage.instance);
+        });
         profileBtn.setId(profileButtonStyle);
 
         Node eventBtn = createButton(eventString, eventButtonStyle, eventIconPath, () -> switchScene(Feed.instance2));
@@ -94,19 +98,37 @@ public class CustomMenuBar {
         anchorPane.getStyleClass().add("menu-bar");
     }
 
+    /**
+     * Set the primary stage for the application.
+     *
+     * @param stage the primary stage to be set
+     */
     public static void setPrimaryStage(Stage stage) {
         CustomMenuBar.stage = stage;
     }
 
+    /**
+     * Retrieves the custom menu bar as an AnchorPane.
+     *
+     * @return the AnchorPane representing the custom menu bar
+     */
     public AnchorPane getCustomMenuBar() {
         return anchorPane;
     }
 
+    /**
+     * Switches the scene of the stage and relocates the GUI elements accordingly.
+     *
+     * @param scene the new scene to switch to
+     */
     private void switchScene(Scene scene) {
         stage.setScene(scene);
         GuiUtil.relocate(scene);
     }
 
+    /**
+     * Opens the specified URL in the default browser.
+     */
     private void openURL() {
         try {
             Desktop.getDesktop().browse(new URI("https://imet.metropolitan.ac.rs/student/#/home"));
@@ -115,6 +137,14 @@ public class CustomMenuBar {
         }
     }
 
+    /**
+     * Create a button with the given text, id, and icon path, and set the action to be performed when the button is clicked.
+     *
+     * @param buttonText the text to display on the button
+     * @param id         the unique identifier of the button
+     * @param iconPath   the file path to the icon to display on the button
+     * @param action     the action to be executed when the button is clicked
+     */
     private Node createButton(String buttonText, String id, String iconPath, Runnable action) throws FileNotFoundException {
         Button button = GuiUtil.createButtonMenu(buttonText, id, iconPath);
         button.setOnAction(actionEvent -> {

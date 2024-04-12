@@ -36,7 +36,33 @@ public abstract class Server {
     private static ServerSocket serverSocket = null;
     private static ExecutorService threadPool = null;
     private static List<ClientHandler> clients = new ArrayList<>();
-
+    /**
+     * Checks if a client with the given database ID is connected.
+     *
+     * @param  databaseId   the database ID to check
+     * @return              true if a client with the given database ID is connected, false otherwise
+     */
+    public static boolean clientConnected(int databaseId) {
+        for (ClientHandler client : clients) {
+            if (client.getDatabaseId() == databaseId) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static ClientHandler getClient(int databaseId) {
+        for (ClientHandler client : clients) {
+            if (client.getDatabaseId() == databaseId) {
+                return client;
+            }
+        }
+        return null;
+    }
+    /**
+     * Starts the server, connecting to the database and initializing the server socket.
+     *
+     * @throws IOException   if an I/O error occurs when opening the server socket
+     */
     public static void start() throws IOException {
         if (isRunning()) {
             System.out.println("Can't run the server.Server is already running!");
@@ -58,7 +84,11 @@ public abstract class Server {
 
         startAccepting();
     }
-
+    /**
+     * Stops the server.
+     *
+     * @throws IOException
+     */
     public static void stop() throws IOException {
         if (!isRunning()) {
             System.out.println("Can't stop the server.Server is already not running!");
@@ -71,7 +101,11 @@ public abstract class Server {
         serverSocket.close();
         System.out.println("Server stopped!");
     }
-
+    /**
+     * Starts accepting new socket connections.
+     *
+     * @throws SocketException if an error occurs while accepting a new connection
+     */
     private static void startAccepting() throws SocketException {
         if (!isRunning()) {
             System.out.println("Can't start accepting.Server is not running!");
@@ -98,7 +132,11 @@ public abstract class Server {
         stopAccepting();
         System.out.println("Server stopped accepting!");
     }
-
+    /**
+     * Stops the accepting process.
+     * Shuts down the thread pool if the server is running and accepting new connections.
+     * If the server is not running or is already not accepting, prints an error message.
+     */
     private static void stopAccepting() {
         System.out.println("Stopping accepting process...");
         threadPool.shutdown();
@@ -112,7 +150,11 @@ public abstract class Server {
         }
         accepting = false;
     }
-
+    /**
+     * Handles a newly accepted socket connection.
+     * Creates a new client handler, adds it to the list of clients, and starts a new thread to handle client requests.
+     * If the maximum number of clients is reached, it stops accepting new connections.
+     */
     private static void onSocketAccepted(final Socket socket) {
         System.out.println("New socket accepted!");
         final ClientHandler client = new ClientHandler(socket);

@@ -31,11 +31,19 @@ public class User {
         setImage(image);
 
     }
-
+    /**
+     * Gets the image path for the user.
+     *
+     * @return the image path
+     */
     public String getImage() {
         return image;
     }
-
+    /**
+     * Sets the image for the object.
+     *
+     * @param image the image to be set
+     */
     public void setImage(String image) {
         if (image != null) {
             this.image = image;
@@ -60,7 +68,11 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
+    /**
+     * Returns a string representation of the User object.
+     *
+     * @return         a string representation of the User object
+     */
     @Override
     public String toString() {
         return "User{"

@@ -91,3 +91,24 @@
 .profile_picture_panel {
     -fx-background-color: #24273f;
 }
+.setting-title{
+
+    -fx-text-fill:#02010e ;
+    -fx-font-size: 70px;
+    -fx-font-weight: bold;
+
+}
+.grid-input-label{
+    -fx-text-fill: #eeeeee;
+    -fx-font-size: 20px;
+}
+#profile-picture-label{
+    -fx-text-fill: #eeeeee;
+    -fx-font-size: 20px;
+}
+#input-text-field {
+    -fx-background-color: #24273f;
+    -fx-border-width: 2;
+    -fx-border-color: transparent transparent #ffffff transparent;
+}
+

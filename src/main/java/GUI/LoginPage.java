@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import networking.Client;
 import networking.DatabaseUtil;
+import networking.packages.PostRequest;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,7 +44,12 @@ public class LoginPage extends Scena {
         }
     }
 
-
+    /**
+     * Retrieves the root parent node for the JavaFX scene, including an image and a child node.
+     *
+     * @return         the root parent node for the JavaFX scene
+     * @throws FileNotFoundException   if the file path is invalid
+     */
     private static Parent root() throws FileNotFoundException {
         HBox hBox = new HBox();
 
@@ -54,7 +60,12 @@ public class LoginPage extends Scena {
         hBox.getChildren().addAll(imageView,root1());
         return hBox;
     }
-
+    /**
+     * Generate the root AnchorPane for the GUI layout, including logo, login button, password and username fields,
+     * and additional image.
+     *
+     * @return          the AnchorPane root for the GUI layout
+     */
     private static Parent root1() throws FileNotFoundException {
 
 
@@ -90,7 +101,11 @@ public class LoginPage extends Scena {
         root.getStyleClass().add("vbox-1");
         return root;
     }
-
+    /**
+     * A function that creates a login button and sets its behavior upon action event.
+     *
+     * @return         	the created login button
+     */
     private static Node loginButton() throws FileNotFoundException {
 
         Button loginBtn = new Button();
@@ -113,6 +128,7 @@ public class LoginPage extends Scena {
                 alert.showAndWait();
                 return;
             }
+            Client.trySend(new PostRequest(""));
             stage.setScene(Feed.instance2);
             GuiUtil.relocate(Feed.instance2);
         });
@@ -127,22 +143,34 @@ public class LoginPage extends Scena {
         return loginBtn;
     }
 
-
-
+    /**
+     * Creates and returns a PasswordField for the password.
+     *
+     * @return          the PasswordField for the password
+     */
     private static Node password() {
         PasswordField passwordField = new PasswordField();
         passwordField.getStyleClass().add("pass-field");
         passwordField.setPromptText("Password");
         return passwordField;
     }
-
+    /**
+     * Creates and returns a TextField for the username.
+     *
+     * @return          the TextField for the username
+     */
     private static Node username() {
         TextField usernameField = new TextField();
         usernameField.setId("usernameField");
         usernameField.setPromptText("Username");
         return usernameField;
     }
-
+    /**
+     * A description of the entire Java function.
+     *
+     * @throws FileNotFoundException
+     * @return         	description of return value
+     */
     private static Node logo() throws FileNotFoundException {
         Image image = new Image(new FileInputStream("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/logos/smet.png"));
         ImageView imageView = new ImageView(image);

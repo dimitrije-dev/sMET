@@ -29,7 +29,18 @@ public abstract class Client {
     private static Socket socket = null;
     private static ObjectOutputStream out = null;
     private static ObjectInputStream in = null;
-
+    private static String username;
+    public static String getUsername(){
+        return Client.username;
+    }
+    /**
+     * Connects to the server with the given username and password.
+     * If already connected, logs in with the provided credentials.
+     *
+     * @param username the username for the connection
+     * @param password the password for the connection
+     * @throws IOException if an I/O error occurs when creating the socket or streams
+     */
     public static void connect(String username, String password) throws IOException {
         if (isConnected()) {
             System.out.println("Can't connect to the server.Client is already connected!");
@@ -50,7 +61,14 @@ public abstract class Client {
         connected = true;
         logIn(username, password);
     }
-
+    /**
+     * Logs in the user with the provided username and password if not already logged in.
+     * Initiates the login process by sending a ConnectRequest to the server.
+     * Handles the response and updates the login status accordingly.
+     *
+     * @param username the username for the connection
+     * @param password the password for the connection
+     */
     private static void logIn(String username, String password) {
         if (loggedIn) {
             System.out.println("Can't log in. User is already logged in!");
@@ -69,9 +87,12 @@ public abstract class Client {
         System.out.println("Login successful!");
         loggedIn = true;
 
+        Client.username = username;
         listen();
     }
-
+    /**
+     * Listens for messages and handles them asynchronously.
+     */
     private static void listen() {
         System.out.println("Listening for messages...");
 
@@ -100,7 +121,12 @@ public abstract class Client {
         }).start();
         System.out.println("Thread started!");
     }
-
+    /**
+     * Handles the given message, performing disconnect action if it's a DisconnectRequest,
+     * and forwarding other messages to the PackageHandler if already logged in.
+     *
+     * @param  message  the message to be handled
+     */
     private static void handleMessage(Object message) {
         if (message instanceof DisconnectRequest) {
             System.out.println("Received disconnect request!");
@@ -114,7 +140,11 @@ public abstract class Client {
         PackageHandler.handlePackageClient(message);
     }
 
-
+    /**
+     * Disconnects from the server forcibly.
+     * Closes the output stream, input stream, and socket if they are not closed already.
+     * Sets the connected flag to false.
+     */
     private static void forceDisconnect() {
         System.out.println("Disconnecting...");
         try {
@@ -130,7 +160,13 @@ public abstract class Client {
         connected = false;
         System.out.println("Disconnected!");
     }
-
+    /**
+     * Disconnects from the server.
+     * Closes the output stream, input stream, and socket if they are not closed already.
+     * Sets the connected flag to false.
+     *
+     * @throws IOException if an I/O error occurs when closing the streams or socket
+     */
     public static void disconnect() throws IOException {
         System.out.println("Disconnecting...");
         System.out.println("Sending disconnect request...");
@@ -143,7 +179,9 @@ public abstract class Client {
         connected = false;
         System.out.println("Disconnected!");
     }
-
+    /**
+     * Logs out the user by sending a logout request to the server and updating the login status.
+     */
     public static void logout() {
         System.out.println("Logging out...");
         System.out.println("Sending logout request...");
@@ -151,12 +189,19 @@ public abstract class Client {
         loggedIn = false;
         System.out.println("Logged out!");
     }
-
+    /**
+     * Sends the provided message to the server.
+     *
+     * @param message the message to be sent
+     * @throws IOException if an I/O error occurs when sending the message
+     */
     public static void send(Object message) throws IOException {
         out.writeObject(message);
         out.flush();
     }
-
+    /**
+     * Tries to send the message and handles IOException by printing the stack trace.
+     */
     public static void trySend(Object message) {
         try {
             send(message);
@@ -164,11 +209,21 @@ public abstract class Client {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Receives an object from the input stream.
+     *
+     * @return the object received from the input stream
+     * @throws IOException if an I/O error occurs
+     * @throws ClassNotFoundException if the class of the serialized object cannot be found
+     */
     public static Object receive() throws IOException, ClassNotFoundException {
         return in.readObject();
     }
-
+    /**
+     * Tries to receive an object from the input stream and handles IOException or ClassNotFoundException by printing the stack trace.
+     *
+     * @return the object received from the input stream, or null if an error occurs
+     */
     public static Object tryReceive() {
         try {
             return receive();
