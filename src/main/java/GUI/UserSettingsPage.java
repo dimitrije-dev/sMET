@@ -2,17 +2,19 @@ package GUI;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Paint;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import networking.Client;
@@ -21,37 +23,29 @@ import networking.packages.ProfileChangeRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Objects;
-
-
 
 public class UserSettingsPage extends Scena {
     private static Stage stage;
     public static UserSettingsPage instance;
-    private static final Rectangle2D bounds = screen.getVisualBounds();
 
     private static ImageView imageView200x200;
-
     private static ImageView imageView50x50;
-
     private static ImageView imageView100x100;
 
     private static TextField gitLink;
-
     private static TextArea bio;
-
     private static TextField instagramLink;
+    private static TextField displayName;
 
     static {
         try {
             instance = new UserSettingsPage();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     public UserSettingsPage() throws IOException {
         super(root());
@@ -60,243 +54,194 @@ public class UserSettingsPage extends Scena {
             UserSettingsPage.instance = this;
         }
     }
+
     private static Parent root() throws IOException {
-        HBox hBox = new HBox();
-        CustomMenuBar menuBar = new CustomMenuBar("inactive-button-menu-bar",
-                "active-button-menu-bar", "inactive-button-menu-bar",
-                "inactive-button-menu-bar", "inactive-button-menu-bar");
-        AnchorPane anchorPane = menuBar.getCustomMenuBar();
-        hBox.getChildren().addAll(anchorPane, mainPart());
+        HBox shell = new HBox();
+        shell.getStyleClass().add("border-pane");
 
-        return hBox;
-    }
-    private static AnchorPane mainPart()  {
-        AnchorPane mainPart = new AnchorPane();
-        mainPart.getStyleClass().add("main-part");
-        mainPart.setMinWidth(bounds.getWidth() * 0.8125);
-        mainPart.setMaxWidth(bounds.getWidth() * 0.8125);
+        CustomMenuBar menuBar = new CustomMenuBar(
+                "inactive-button-menu-bar",
+                "active-button-menu-bar",
+                "inactive-button-menu-bar",
+                "inactive-button-menu-bar",
+                "inactive-button-menu-bar"
+        );
 
-        double width = mainPart.getMinWidth();
+        VBox content = settingsContent();
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.getStyleClass().add("timeline-scroll");
+        HBox.setHgrow(scrollPane, Priority.ALWAYS);
 
-        Label settingTitle = settingTitle();
-        Node settingGrid = settingGrid();
-
-        HBox profilePicturesPanel = profilePicturesPanel();
-
-        Label profilePictureLabel = profilePictureLabel();
-
-        mainPart.getChildren().addAll(settingTitle, settingGrid,profilePictureLabel, profilePicturesPanel);
-        AnchorPane.setTopAnchor(settingTitle, 10d);
-        AnchorPane.setLeftAnchor(settingTitle, width / 2 - 200d);
-
-        AnchorPane.setTopAnchor(settingGrid, 200d);
-        AnchorPane.setLeftAnchor(settingGrid, 50d);
-
-        AnchorPane.setTopAnchor(profilePictureLabel, 440d);
-        AnchorPane.setLeftAnchor(profilePictureLabel, 50d);
-
-        AnchorPane.setTopAnchor(profilePicturesPanel, 500d);
-        AnchorPane.setLeftAnchor(profilePicturesPanel, 50d);
-
-
-        return mainPart;
-    }
-    private static Label settingTitle() {
-        Label label = new Label("User Settings");
-        label.getStyleClass().add("setting-title");
-
-        return label;
+        shell.getChildren().addAll(menuBar.getCustomMenuBar(), scrollPane);
+        return shell;
     }
 
-    /**
-     * Generate and return a GridPane that contains various input fields and buttons for setting options.
-     *
-     * @return          the GridPane with setting options
-     */
-    private static Node settingGrid() {
-        GridPane gridPane = new GridPane();
-        gridPane.getStyleClass().add("setting-grid-pane");
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
+    private static VBox settingsContent() {
+        VBox content = new VBox(16);
+        content.getStyleClass().addAll("main-part", "demo-page");
+        content.setPadding(new Insets(18));
 
-        gitLink = inputTextField("Git link");
-        instagramLink = inputTextField("Instagram link");
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+        Label title = new Label("Profile Settings");
+        title.getStyleClass().add("feed-title");
+        header.getChildren().add(title);
+
+        FlowPane body = new FlowPane();
+        body.setHgap(16);
+        body.setVgap(16);
+        body.setPrefWrapLength(980);
+        body.getChildren().addAll(settingsFormCard(), profilePicturesCard());
+
+        content.getChildren().addAll(header, body);
+        return content;
+    }
+
+    private static VBox settingsFormCard() {
+        VBox card = new VBox(12);
+        card.getStyleClass().add("demo-card");
+        card.setPadding(new Insets(18));
+        card.setPrefWidth(560);
+
+        Label subtitle = new Label("Update your public profile details.");
+        subtitle.getStyleClass().add("demo-subtitle");
+
+        displayName = inputTextField("Display name");
+        displayName.setText(ProfilePage.username != null ? ProfilePage.username : "");
+        gitLink = inputTextField("GitHub profile link");
+        instagramLink = inputTextField("Instagram profile link");
         bio = updateProfileBio();
 
+        Button saveButton = saveSettingsButton();
+        HBox actionRow = new HBox(saveButton);
+        actionRow.setAlignment(Pos.CENTER_RIGHT);
 
-
-        gridPane.add(gridInputLabel("Name and username"), 0, 0);
-        gridPane.add(inputTextField("Name and username"), 1, 0);
-        gridPane.add(gridInputLabel("Git link"), 0, 1);
-        gridPane.add(gitLink, 1, 1);
-        gridPane.add(gridInputLabel("Instagram link"), 0, 2);
-        gridPane.add(instagramLink, 1, 2);
-        gridPane.add(gridInputLabel("Update bio"), 0, 3);
-        gridPane.add(bio, 1, 3);
-
-        gridPane.add(saveSettingsButton(), 3, 4);
-
-        return gridPane;
+        card.getChildren().addAll(
+                fieldGroup("Display name", displayName),
+                fieldGroup("GitHub", gitLink),
+                fieldGroup("Instagram", instagramLink),
+                fieldGroup("Bio", bio),
+                subtitle,
+                actionRow
+        );
+        return card;
     }
-    /**
-     * Creates a label for grid input with the specified text.
-     * @param text the text to be displayed on the label
-     * @return a label for grid input
-     */
-    private static Node gridInputLabel(String text) {
-        Label label = new Label(text);
+
+    private static VBox profilePicturesCard() {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("demo-card");
+        card.setPadding(new Insets(18));
+        card.setAlignment(Pos.TOP_CENTER);
+        card.setPrefWidth(320);
+
+        Label label = new Label("Profile Photos");
+        label.getStyleClass().add("demo-card-title");
+
+        imageView200x200 = profilePicturePlaceholder200x200();
+        imageView100x100 = profilePicturePlaceholder100x100();
+        imageView50x50 = profilePicturePlaceholder50x50();
+
+        HBox previewRow = new HBox(10, imageView100x100, imageView50x50);
+        previewRow.setAlignment(Pos.CENTER);
+
+        Button importButton = importPhotoButton();
+        importButton.setOnAction(actionEvent -> {
+            Image imported = importPhoto();
+            if (imported != null) {
+                imageView200x200.setImage(imported);
+                imageView100x100.setImage(imported);
+                imageView50x50.setImage(imported);
+            }
+        });
+
+        card.getChildren().addAll(label, imageView200x200, previewRow, importButton);
+        return card;
+    }
+
+    private static VBox fieldGroup(String labelText, Region input) {
+        VBox group = new VBox(6);
+        Label label = new Label(labelText);
         label.getStyleClass().add("grid-input-label");
-        return label;
+        input.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(input, Priority.NEVER);
+        group.getChildren().addAll(label, input);
+        return group;
     }
 
-
-    /**
-     * Creates a text field input with the specified placeholder.
-     *
-     * @param placeholder the text to be displayed as the placeholder
-     * @return a text field input with the specified placeholder
-     */
     private static TextField inputTextField(String placeholder) {
         TextField textField = new TextField();
         textField.setPromptText(placeholder);
         textField.setId("input-text-field");
-        textField.setBackground(new Background(new BackgroundFill(Paint.valueOf("#24273f"), CornerRadii.EMPTY, Insets.EMPTY)));
-        textField.setMinWidth(400);
-        textField.setMaxWidth(400);
-        textField.setMinHeight(25);
-        textField.setMaxHeight(25);
+        textField.setMinHeight(36);
         return textField;
-
     }
-    /**
-     * Creates a TextArea for updating user bio with specific dimensions and prompt text.
-     */
+
     private static TextArea updateProfileBio() {
         TextArea textArea = new TextArea();
-        textArea.setPromptText("Update your bio");
-        textArea.setMinWidth(400);
-        textArea.setMaxWidth(400);
-        textArea.setMinHeight(50);
-        textArea.setMaxHeight(50);
-
+        textArea.setPromptText("Write a short campus bio...");
+        textArea.setPrefRowCount(4);
+        textArea.setWrapText(true);
         return textArea;
     }
-    /**
-     * Creates a button for saving settings. When clicked, it retrieves input from text fields and sends a profile change request.
-     * @return save settings button
-     */
-    private static Node saveSettingsButton() {
-        Button button = new Button();
+
+    private static Button saveSettingsButton() {
+        Button button = new Button("Save changes");
         button.getStyleClass().add("save-settings-button");
-        button.setText("Save");
         button.setOnAction(actionEvent -> {
             String gitString = gitLink.getText();
             String instaString = instagramLink.getText();
             String bioString = bio.getText();
             Client.trySend(new ProfileChangeRequest(gitString, instaString, bioString));
+            ProfilePage.username = displayName.getText().isBlank() ? ProfilePage.username : displayName.getText().trim();
         });
         return button;
     }
-    /**
-     * Creates a label for the profile picture.
-     *
-     * @return the label for the profile picture
-     */
-    private static Label profilePictureLabel() {
-        Label label = new Label("Profile picture:");
-        label.getStyleClass().add("profile-picture-label");
 
-        return label;
-    }
-    /**
-     * Generates the profile picture placeholder with dimensions 200x200 and returns it as an ImageView object.
-     * @return the created profile picture placeholder
-     */
     private static ImageView profilePicturePlaceholder200x200() {
-        Image image = new Image("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
-        imageView200x200 = new ImageView(image);
-        imageView200x200.setFitHeight(200);
-        imageView200x200.setFitWidth(200);
-
-        return imageView200x200;
+        Image image = new Image(Paths.get("assets/icons/avatar-48x48.png").toUri().toString());
+        ImageView view = new ImageView(image);
+        view.setFitHeight(200);
+        view.setFitWidth(200);
+        return view;
     }
-    /**
-     * Creates a placeholder profile picture with dimensions 100x100.
-     * @return the ImageView object representing the placeholder picture
-     */
+
     private static ImageView profilePicturePlaceholder100x100() {
-        Image image = new Image("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
-        imageView100x100 = new ImageView(image);
-        imageView100x100.setFitHeight(100);
-        imageView100x100.setFitWidth(100);
-
-        return imageView100x100;
-
-
+        Image image = new Image(Paths.get("assets/icons/female-avatar.png").toUri().toString());
+        ImageView view = new ImageView(image);
+        view.setFitHeight(100);
+        view.setFitWidth(100);
+        return view;
     }
-    /**
-     * Generates a placeholder profile picture with dimensions 50x50.
-     * @return the ImageView object representing the placeholder picture
-     */
+
     private static ImageView profilePicturePlaceholder50x50() {
-        Image image = new Image("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
-        imageView50x50 = new ImageView(image);
-        imageView50x50.setFitHeight(50);
-        imageView50x50.setFitWidth(50);
-
-        return imageView50x50;
-
+        Image image = new Image(Paths.get("assets/icons/male-avatar.png").toUri().toString());
+        ImageView view = new ImageView(image);
+        view.setFitHeight(50);
+        view.setFitWidth(50);
+        return view;
     }
-    /**
-     * Generates a profile pictures panel with placeholders of different sizes.
-     *
-     * @return         	the HBox profile pictures panel
-     */
-    private static HBox profilePicturesPanel() {
-        HBox profilePicturesPanel = new HBox();
-        profilePicturesPanel.getStyleClass().add("profile-pictures-panel");
-        ImageView profilePicturePlaceholder200x200 = profilePicturePlaceholder200x200();
-        ImageView profilePicturePlaceholder50x50 = profilePicturePlaceholder50x50();
-        ImageView profilePicturePlaceholder100x100 = profilePicturePlaceholder100x100();
 
-        profilePicturesPanel.getChildren().addAll(profilePicturePlaceholder200x200,profilePicturePlaceholder100x100,profilePicturePlaceholder50x50);
-        profilePicturesPanel.setAlignment(Pos.BASELINE_CENTER);
-        profilePicturesPanel.setSpacing(10);
-
-        return profilePicturesPanel;
-
-    }
-    /**
-     * Creates and returns a Button for importing a photo.
-     *
-     * @return the Button for importing a photo
-     */
     private static Button importPhotoButton() {
-        Button button = new Button();
+        Button button = new Button("Import photo");
         button.getStyleClass().add("import-photo-button");
-        button.setText("Import photo");
-
         return button;
     }
-    /**
-     * Imports a photo by opening a file chooser dialog and returning the selected image.
-     *
-     * @return the imported Image, or null if no image was selected
-     */
-    private static Image importPhoto(){
+
+    private static Image importPhoto() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.png"));
+        fileChooser.setTitle("Choose profile image");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.jpeg", "*.png"));
         File file = fileChooser.showOpenDialog(stage);
-        Image image = null;
-        if (file != null) {
-            image = new Image(file.toURI().toString());
-        }
-        return image;
+        if (file == null) return null;
+        return new Image(file.toURI().toString());
     }
 
+    public static void setPrimaryStage(Stage stage) {
+        UserSettingsPage.stage = stage;
+    }
 
-
-
-
+    public static Stage getPrimaryStage() {
+        return stage;
+    }
 }

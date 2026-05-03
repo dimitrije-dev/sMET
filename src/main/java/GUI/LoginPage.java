@@ -1,32 +1,35 @@
 package GUI;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import networking.Client;
 import networking.DatabaseUtil;
 import networking.packages.PostRequest;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
-
-import static GUI.GuiUtil.buttonScaleTransition;
 
 public class LoginPage extends Scena {
 
     private static Stage stage;
     public static LoginPage instance;
 
-    private static TextField usernameField= (TextField) username();
-    private static   PasswordField passwordField= (PasswordField) password();
+    private static final TextField usernameField = new TextField();
+    private static final PasswordField passwordField = new PasswordField();
 
     static {
         try {
@@ -37,169 +40,133 @@ public class LoginPage extends Scena {
     }
 
     public LoginPage() throws FileNotFoundException {
-        super(root(), 800, 500);
+        super(root());
         this.getStylesheets().add((Objects.requireNonNull(this.getClass().getResource("/login-page.css"))).toExternalForm());
         if (LoginPage.instance == null) {
             LoginPage.instance = this;
         }
     }
 
-    /**
-     * Retrieves the root parent node for the JavaFX scene, including an image and a child node.
-     *
-     * @return         the root parent node for the JavaFX scene
-     * @throws FileNotFoundException   if the file path is invalid
-     */
     private static Parent root() throws FileNotFoundException {
-        HBox hBox = new HBox();
+        HBox root = new HBox();
+        root.getStyleClass().add("login-root");
 
-        Image image = new Image(new FileInputStream("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/logos/isumbg.png"));
-        ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(500);
-        imageView.setFitWidth(400);
-        hBox.getChildren().addAll(imageView,root1());
-        return hBox;
-    }
-    /**
-     * Generate the root AnchorPane for the GUI layout, including logo, login button, password and username fields,
-     * and additional image.
-     *
-     * @return          the AnchorPane root for the GUI layout
-     */
-    private static Parent root1() throws FileNotFoundException {
+        StackPane brandPane = new StackPane();
+        brandPane.getStyleClass().add("login-brand-pane");
+        brandPane.setMinWidth(420);
 
+        ImageView campusVisual = GuiUtil.createIcon("assets/logos/isumbg.png");
+        campusVisual.setPreserveRatio(true);
+        campusVisual.setFitWidth(520);
+        campusVisual.setOpacity(0.35);
 
-        AnchorPane root = new AnchorPane();
+        VBox brandContent = new VBox(12);
+        brandContent.setAlignment(Pos.CENTER_LEFT);
+        brandContent.setPadding(new Insets(38));
 
-        root.setMinWidth(400);
-        root.setMaxWidth(400);
-        root.setMinHeight(500);
-        root.setMaxHeight(500);
-        Node logo = logo();
-        Node loginBtn = loginButton();
-        Node passField = passwordField;
-        Node userField = usernameField;
-        Node metLogoSlika = metSlika();
+        ImageView logo = (ImageView) GuiUtil.logo();
+        logo.setPreserveRatio(true);
+        logo.setFitWidth(240);
+        logo.setFitHeight(110);
 
-        root.getChildren().addAll(logo, loginBtn, passField, userField, metLogoSlika);
+        Label title = new Label("Campus Social Network");
+        title.getStyleClass().add("login-brand-title");
 
-        AnchorPane.setTopAnchor(logo, 50d);
-        AnchorPane.setLeftAnchor(logo, 100d);
+        Label subtitle = new Label("Connect with students, share updates, and follow events around your faculty.");
+        subtitle.getStyleClass().add("login-brand-subtitle");
+        subtitle.setWrapText(true);
+        subtitle.setMaxWidth(420);
 
-        AnchorPane.setTopAnchor(loginBtn, 330.0);
-        AnchorPane.setLeftAnchor(loginBtn, 100.0);
+        brandContent.getChildren().addAll(logo, title, subtitle);
+        brandPane.getChildren().addAll(campusVisual, brandContent);
+        StackPane.setAlignment(brandContent, Pos.CENTER_LEFT);
 
-        AnchorPane.setLeftAnchor(passField, 75d);
-        AnchorPane.setTopAnchor(passField, 250.0);
+        VBox formPane = new VBox();
+        formPane.getStyleClass().add("login-form-pane");
+        formPane.setAlignment(Pos.CENTER);
+        formPane.setPadding(new Insets(20));
+        formPane.setMinWidth(360);
 
-        AnchorPane.setLeftAnchor(userField, 75.0);
-        AnchorPane.setTopAnchor(userField, 200.0);
+        VBox card = new VBox(14);
+        card.getStyleClass().add("login-card");
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(28));
+        card.setMaxWidth(410);
 
-        AnchorPane.setLeftAnchor(metLogoSlika, 150d);
-        AnchorPane.setTopAnchor(metLogoSlika, 400d);
+        Label cardTitle = new Label("Welcome Back");
+        cardTitle.getStyleClass().add("login-card-title");
 
-        root.getStyleClass().add("vbox-1");
+        Label cardSubtitle = new Label("Sign in with your campus account.");
+        cardSubtitle.getStyleClass().add("login-card-subtitle");
+
+        usernameField.setPromptText("Username");
+        usernameField.getStyleClass().add("login-input");
+
+        passwordField.setPromptText("Password");
+        passwordField.getStyleClass().add("login-input");
+
+        Button loginBtn = buildLoginButton();
+        card.getChildren().addAll(cardTitle, cardSubtitle, usernameField, passwordField, loginBtn);
+        formPane.getChildren().add(card);
+
+        root.getChildren().addAll(brandPane, formPane);
+        HBox.setHgrow(brandPane, Priority.ALWAYS);
+        HBox.setHgrow(formPane, Priority.ALWAYS);
+
+        root.widthProperty().addListener((obs, oldWidth, newWidth) -> {
+            boolean showBrand = newWidth.doubleValue() > 980;
+            brandPane.setManaged(showBrand);
+            brandPane.setVisible(showBrand);
+        });
+
         return root;
     }
-    /**
-     * A function that creates a login button and sets its behavior upon action event.
-     *
-     * @return         	the created login button
-     */
-    private static Node loginButton() throws FileNotFoundException {
 
-        Button loginBtn = new Button();
-        loginBtn.setId("loginBtn");
-        buttonScaleTransition(loginBtn);
+    private static Button buildLoginButton() throws FileNotFoundException {
+        Button loginBtn = GuiUtil.createButtonTextIcon("Sign In", "loginBtn", "assets/icons/person.png");
+        GuiUtil.buttonScaleTransition(loginBtn);
+
         loginBtn.setOnAction(actionEvent -> {
-            final String username = usernameField.getText(); // TODO : Get username
-            final String password = passwordField.getText(); // TODO : Get password
-            try {
-                Client.connect(username,password);
-                DatabaseUtil.connect();
-                DatabaseUtil.addUser(username, password);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (!Client.isLoggedIn()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Failed");
-                alert.setContentText("Cant connect to server");
-                alert.showAndWait();
+            final String username = usernameField.getText() == null ? "" : usernameField.getText().trim();
+            final String password = passwordField.getText() == null ? "" : passwordField.getText();
+
+            if (username.isEmpty() || password.isEmpty()) {
+                showInfo("Missing fields", "Please enter both username and password.");
                 return;
             }
+
+            try {
+                DatabaseUtil.connect();
+                DatabaseUtil.addUser(username, password);
+                Client.connect(username, password);
+            } catch (IOException e) {
+                showInfo("Connection issue", "Unable to reach server. Please make sure server is running.");
+                return;
+            }
+
+            if (!Client.isLoggedIn()) {
+                showInfo("Login failed", "Username or password is incorrect.");
+                return;
+            }
+
             Client.trySend(new PostRequest(""));
+            passwordField.clear();
             stage.setScene(Feed.instance2);
             GuiUtil.relocate(Feed.instance2);
         });
-        loginBtn.getStyleClass().add("myButton");
 
-        Label buttonText = new Label("Prijavi se");
-        buttonText.setId("bt");
-        HBox buttonBox = new HBox(buttonText, GuiUtil.createIcon("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/icons/person.png"));
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setSpacing(15);
-        loginBtn.setGraphic(buttonBox);
         return loginBtn;
     }
 
-    /**
-     * Creates and returns a PasswordField for the password.
-     *
-     * @return          the PasswordField for the password
-     */
-    private static Node password() {
-        PasswordField passwordField = new PasswordField();
-        passwordField.getStyleClass().add("pass-field");
-        passwordField.setPromptText("Password");
-        return passwordField;
+    private static void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
-    /**
-     * Creates and returns a TextField for the username.
-     *
-     * @return          the TextField for the username
-     */
-    private static Node username() {
-        TextField usernameField = new TextField();
-        usernameField.setId("usernameField");
-        usernameField.setPromptText("Username");
-        return usernameField;
-    }
-    /**
-     * A description of the entire Java function.
-     *
-     * @throws FileNotFoundException
-     * @return         	description of return value
-     */
-    private static Node logo() throws FileNotFoundException {
-        Image image = new Image(new FileInputStream("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/logos/smet.png"));
-        ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(100);
-        imageView.setFitWidth(200);
-        return imageView;
-    }
-    /**
-     * Generate a function comment for the given function body in a markdown code block with the correct language syntax.
-     *
-     * @return  the generated function comment
-     * @throws FileNotFoundException  if the file is not found
-     */
 
-    private static Node metSlika() throws FileNotFoundException {
-        Image image1 = new Image(new FileInputStream("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/logos/transp-met.png"));
-        ImageView imageView1 = new ImageView(image1);
-        imageView1.setFitWidth(100);
-        imageView1.setFitHeight(100);
-        return imageView1;
-    }
-    /**
-     * Set the primary stage for the LoginPage.
-     *
-     * @param  stage  the Stage object to set as the primary stage
-     */
     public static void setPrimaryStage(Stage stage) {
         LoginPage.stage = stage;
     }
-
-
 }

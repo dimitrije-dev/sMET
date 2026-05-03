@@ -51,9 +51,11 @@ public class TextPost extends VBox {
     public TextPost(String text, String imeIPrezime, String username, String time) throws FileNotFoundException {
         this.getChildren().addAll(vBoxUpper(imeIPrezime, username), vBoxMiddle(text), vBoxLower(time));
         this.getStylesheets().add((Objects.requireNonNull(this.getClass().getResource("/feed-page.css"))).toExternalForm());
-        this.setMaxWidth(600);
+        this.setMaxWidth(Double.MAX_VALUE);
         this.setMinHeight(120);
-        this.setMinWidth(600);
+        this.setMinWidth(0);
+        this.setFillWidth(true);
+        this.setSpacing(8);
 
         this.getStyleClass().add("post");
 
@@ -77,10 +79,10 @@ public class TextPost extends VBox {
         Label label1 = new Label(username);
         label1.setId("label-white");
         label1.setOpacity(0.5);
-        label1.setFont(Font.font("Areal", FontPosture.ITALIC, 15));
-        label.setFont(Font.font("Areal", FontWeight.BOLD, 20));
+        label1.setFont(Font.font("Arial", FontPosture.ITALIC, 14));
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         vBox1.getChildren().addAll(label, label1);
-        hBox.getChildren().addAll(GuiUtil.createIcon("/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/icons/avatar-48x48.png"),vBox1);
+        hBox.getChildren().addAll(GuiUtil.createIcon("assets/icons/avatar-48x48.png"),vBox1);
         vBox.getChildren().add(hBox);
 
         return vBox;
@@ -90,7 +92,7 @@ public class TextPost extends VBox {
         Label label = new Label(text);
         label.setId("label-white");
         label.setWrapText(true);
-        label.setFont(Font.font("Areal",25));
+        label.setFont(Font.font("Arial",17));
         vBox.getChildren().add(label);
         return vBox;
     }
@@ -101,7 +103,7 @@ public class TextPost extends VBox {
         label.setOpacity(0.5);
         label.setId("label-white");
 
-        label.setFont(Font.font("Areal", FontPosture.ITALIC, 11));
+        label.setFont(Font.font("Arial", FontPosture.ITALIC, 11));
         vBox.getChildren().add(label);
         return vBox;
     }

@@ -1,10 +1,14 @@
 package GUI;
 
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import networking.Client;
 
@@ -14,13 +18,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static GUI.Scena.screen;
-
 public class CustomMenuBar {
     private static Stage stage;
-    private static final Rectangle2D bounds = screen.getVisualBounds();
-
-
     private final AnchorPane anchorPane;
 
 
@@ -34,12 +33,12 @@ public class CustomMenuBar {
         String logOutString = " Log out";
         String messangerString = " Messages";
 
-        String feedIconPath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/buttonImages/home.png";
-        String profileIconPath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/buttonImages/user.png";
-        String eventIconPath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/buttonImages/event.png";
-        String metIconPath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/buttonImages/met.png";
-        String logoutIconPath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/buttonImages/logoff.png";
-        String messagesIconPath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/buttonImages/messages.png";
+        String feedIconPath = "assets/icons/person.png";
+        String profileIconPath = "assets/icons/avatar-48x48.png";
+        String eventIconPath = "assets/icons/female-avatar.png";
+        String metIconPath = "assets/logos/imet-logo-bela.png";
+        String logoutIconPath = "assets/icons/male-avatar.png";
+        String messagesIconPath = "assets/icons/send30x.png";
 
 
         Node logo = GuiUtil.logo();
@@ -49,52 +48,49 @@ public class CustomMenuBar {
 
         Node profileBtn = createButton(profileString, profileButtonStyle, profileIconPath, () -> {
             ProfilePage.username = Client.getUsername();
-            ProfilePage.usernameLabel.setText(ProfilePage.username);
+            if (ProfilePage.usernameLabel != null) {
+                ProfilePage.usernameLabel.setText(ProfilePage.username);
+            }
             switchScene(ProfilePage.instance);
         });
-        profileBtn.setId(profileButtonStyle);
 
-        Node eventBtn = createButton(eventString, eventButtonStyle, eventIconPath, () -> switchScene(Feed.instance2));
-        eventBtn.setId(eventButtonStyle);
+        Node eventBtn = createButton(eventString, eventButtonStyle, eventIconPath, () -> switchScene(EventsPage.instance));
 
         Node iMetButton = createButton(iMetString, iMetButtonStyle, metIconPath, this::openURL);
-        iMetButton.setId(iMetButtonStyle);
 
         Node logoutBtn = createButton(logOutString, "inactive-button-menu-bar", logoutIconPath, () -> {
             Client.logout();
             switchScene(LoginPage.instance);
-
         });
-        logoutBtn.setId("inactive-button-menu-bar");
+        VBox menuRoot = new VBox(14);
+        menuRoot.setPadding(new Insets(20, 14, 20, 14));
+        menuRoot.setAlignment(Pos.TOP_CENTER);
 
+        VBox navButtons = new VBox(8);
+        navButtons.setFillWidth(true);
+        navButtons.getChildren().addAll(feedBtn, profileBtn, messangerBtn, eventBtn, iMetButton);
 
-        anchorPane.getChildren().addAll(logo, feedBtn, profileBtn, messangerBtn, eventBtn, iMetButton, logoutBtn);
+        for (Node node : navButtons.getChildren()) {
+            if (node instanceof Button button) {
+                button.setMaxWidth(Double.MAX_VALUE);
+            }
+        }
+        if (logoutBtn instanceof Button button) {
+            button.setMaxWidth(Double.MAX_VALUE);
+        }
 
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        AnchorPane.setTopAnchor(logo, 0d);
-        AnchorPane.setLeftAnchor(logo, 50d);
+        menuRoot.getChildren().addAll(logo, navButtons, spacer, logoutBtn);
+        anchorPane.getChildren().add(menuRoot);
+        AnchorPane.setTopAnchor(menuRoot, 0d);
+        AnchorPane.setRightAnchor(menuRoot, 0d);
+        AnchorPane.setBottomAnchor(menuRoot, 0d);
+        AnchorPane.setLeftAnchor(menuRoot, 0d);
 
-        AnchorPane.setRightAnchor(feedBtn, 0d);
-        AnchorPane.setTopAnchor(feedBtn, 150d);
-
-        AnchorPane.setTopAnchor(profileBtn, 250d);
-        AnchorPane.setRightAnchor(profileBtn, 0d);
-
-        AnchorPane.setTopAnchor(messangerBtn, 350d);
-        AnchorPane.setRightAnchor(messangerBtn, 0d);
-
-        AnchorPane.setTopAnchor(eventBtn, 450d);
-        AnchorPane.setRightAnchor(eventBtn, 0d);
-
-        AnchorPane.setTopAnchor(iMetButton, 550d);
-        AnchorPane.setRightAnchor(iMetButton, 0d);
-
-        AnchorPane.setTopAnchor(logoutBtn, 650d);
-        AnchorPane.setRightAnchor(logoutBtn, 0d);
-
-        anchorPane.setMinWidth(bounds.getWidth() * 0.1875);
-        anchorPane.setMaxWidth(bounds.getWidth() * 0.1875);
-
+        anchorPane.setPrefWidth(250);
+        anchorPane.setMinWidth(220);
         anchorPane.getStyleClass().add("menu-bar");
     }
 
@@ -147,6 +143,7 @@ public class CustomMenuBar {
      */
     private Node createButton(String buttonText, String id, String iconPath, Runnable action) throws FileNotFoundException {
         Button button = GuiUtil.createButtonMenu(buttonText, id, iconPath);
+        button.setId(id);
         button.setOnAction(actionEvent -> {
             action.run();
         });
@@ -157,4 +154,3 @@ public class CustomMenuBar {
 
 
 }
-

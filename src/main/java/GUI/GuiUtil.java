@@ -15,14 +15,17 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 
 public class GuiUtil {
     private static Stage stage;
     static Screen screen = Screen.getPrimary();
     private static final Rectangle2D bounds = screen.getVisualBounds();
+    private static final String DEFAULT_ICON_PATH = "assets/icons/person.png";
 
     /**
      * Generates a logo node by loading an image file and setting its dimensions.
@@ -31,8 +34,7 @@ public class GuiUtil {
      * @throws FileNotFoundException If the image file is not found.
      */
     public static Node logo() throws FileNotFoundException {
-        String imagePath = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/logos/smet.png";
-        Image image = new Image(new FileInputStream(imagePath));
+        Image image = loadImage("assets/logos/smet.png");
         ImageView imageView = new ImageView(image);
         imageView.setFitHeight(100);
         imageView.setFitWidth(200);
@@ -47,7 +49,7 @@ public class GuiUtil {
      * @throws FileNotFoundException if the image file is not found
      */
     public static ImageView createIcon(String path) throws FileNotFoundException {
-        Image image = new Image(new FileInputStream(path));
+        Image image = loadImage(path);
         return new ImageView(image);
     }
     /**
@@ -59,7 +61,7 @@ public class GuiUtil {
     public static ImageView createButtonIcon(String path) throws FileNotFoundException {
         //resize image to 50*50
 
-        Image image = new Image(new FileInputStream(path), 50, 50, true, true);
+        Image image = loadImage(path, 50, 50);
 
         ImageView imageView = new ImageView(image);
 
@@ -236,7 +238,7 @@ public class GuiUtil {
     public static Button createButtonMenu(String buttonText, String id, String icon) throws FileNotFoundException {
         Button button = new Button();
         button.setId(id);
-        Image image = new Image(new FileInputStream(icon));
+        Image image = loadImage(icon);
 
 
         ImageView imageView = new ImageView(image);
@@ -248,6 +250,50 @@ public class GuiUtil {
         buttonBox.setSpacing(10);
         button.setGraphic(buttonBox);
         return button;
+    }
+
+    private static Image loadImage(String path) throws FileNotFoundException {
+        return loadImage(path, 0, 0);
+    }
+
+    private static Image loadImage(String path, double width, double height) throws FileNotFoundException {
+        Path resolvedPath = resolveAssetPath(path);
+        String uri = resolvedPath.toUri().toString();
+        if (width > 0 && height > 0) {
+            return new Image(uri, width, height, true, true);
+        }
+        return new Image(uri);
+    }
+
+    private static Path resolveAssetPath(String rawPath) throws FileNotFoundException {
+        String normalizedPath = normalizePath(rawPath);
+        Path candidate = Paths.get(normalizedPath);
+        if (!candidate.isAbsolute()) {
+            candidate = Paths.get("").toAbsolutePath().resolve(candidate).normalize();
+        }
+        if (Files.exists(candidate)) {
+            return candidate;
+        }
+
+        Path fallback = Paths.get("").toAbsolutePath().resolve(DEFAULT_ICON_PATH).normalize();
+        if (Files.exists(fallback)) {
+            return fallback;
+        }
+
+        throw new FileNotFoundException("Unable to load image: " + rawPath);
+    }
+
+    private static String normalizePath(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return DEFAULT_ICON_PATH;
+        }
+
+        String normalized = rawPath.replace("\\", "/");
+        int assetsIndex = normalized.indexOf("/assets/");
+        if (assetsIndex >= 0) {
+            return normalized.substring(assetsIndex + 1);
+        }
+        return normalized;
     }
 
 

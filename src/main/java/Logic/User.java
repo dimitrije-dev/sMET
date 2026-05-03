@@ -48,7 +48,7 @@ public class User {
         if (image != null) {
             this.image = image;
         } else {
-            this.image = "/Users/dimimac/INTELLIJ/JAVA II/PROJEKAT/projekat-cs202/assets/photos/profilePlaceholder.png";
+            this.image = "assets/photos/pptemp1.png";
         }
     }
 

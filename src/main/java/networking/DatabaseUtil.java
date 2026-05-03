@@ -1,6 +1,5 @@
 package networking;
 
-import javafx.util.Pair;
 import networking.packages.ConnectRequest;
 import networking.packages.FeedUpdateRequest;
 import networking.packages.ProfileChangeRequest;
@@ -13,9 +12,9 @@ import java.util.List;
 
 public abstract class DatabaseUtil {
     private static boolean connected = false;
-    private final static String URL = "jdbc:mysql://localhost:3306/iMetDatabase";
-    private final static String USERNAME = "root";
-    private final static String PASSWORD = "1234";
+    private final static String URL = System.getenv().getOrDefault("SMET_DB_URL", "jdbc:mysql://localhost:3306/iMetDatabase");
+    private final static String USERNAME = System.getenv().getOrDefault("SMET_DB_USERNAME", "root");
+    private final static String PASSWORD = System.getenv().getOrDefault("SMET_DB_PASSWORD", "1234");
     private static Connection connection = null;
     /**
      * Connects to the database if not already connected.
@@ -47,7 +46,9 @@ public abstract class DatabaseUtil {
      * @throws SQLException if an error occurs during disconnection
      */
     public static void disconnect() throws SQLException {
-        connection.close();
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+        }
         connected = false;
     }
     /**
@@ -77,10 +78,11 @@ public abstract class DatabaseUtil {
      * @param  password   the password of the user to be added
      */
     public static void addUser(String username, String password) {
+        if (!connected || connection == null) return;
 
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         if (userExists(username)) return;
-        String query = "INSERT INTO USER (USERNAME, PASSWORD) VALUES ('" + username + "', '" + hashedPassword + "')";
+        String query = "INSERT INTO `user` (username, password) VALUES ('" + username + "', '" + hashedPassword + "')";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -94,7 +96,8 @@ public abstract class DatabaseUtil {
      * @return           true if the user exists, false otherwise
      */
     public static boolean userExists(String username) {
-        String query = "SELECT * from USER WHERE USERNAME = '" + username + "'";
+        if (!connected || connection == null) return false;
+        String query = "SELECT * from `user` WHERE username = '" + username + "'";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
             return resultSet.next();
@@ -109,12 +112,12 @@ public abstract class DatabaseUtil {
      * @return true if the username and password match, false otherwise
      */
     public static boolean validateUser(ConnectRequest request) {
-        String query = "SELECT * from USER WHERE USERNAME = ?";
+        String query = "SELECT * from `user` WHERE username = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, request.getUsername());
             ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) return false;
-            String hashedPassword = resultSet.getString("PASSWORD");
+            String hashedPassword = resultSet.getString("password");
             return BCrypt.checkpw(request.getPassword(), hashedPassword);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -128,7 +131,7 @@ public abstract class DatabaseUtil {
      * @return          the user ID, or -1 if not found
      */
     public static int getUserId(ConnectRequest request) {
-        String query = "SELECT * from USER WHERE username = ?";
+        String query = "SELECT * from `user` WHERE username = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, request.getUsername());
             ResultSet resultSet = statement.executeQuery();
@@ -145,12 +148,13 @@ public abstract class DatabaseUtil {
      * @return The list of users matching the search criteria.
      */
     public static ArrayList<String> findUserFromSearchBar(String username) {
-        String query = "SELECT * from USER WHERE USERNAME LIKE '" + username + "%'";
+        if (!connected || connection == null) return new ArrayList<>();
+        String query = "SELECT * from `user` WHERE username LIKE '" + username + "%'";
         ArrayList<String> users = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                users.add(resultSet.getString("USERNAME"));
+                users.add(resultSet.getString("username"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -164,7 +168,7 @@ public abstract class DatabaseUtil {
      * @param content         the content of the post to be added
      */
     public static void addPost(ClientHandler clientHandler,String content) {
-        String query = "INSERT INTO POST (post_content, USER_ID) VALUES ('" + content + "', '" + clientHandler.getDatabaseId() + "')";
+        String query = "INSERT INTO `post` (post_content, user_id) VALUES ('" + content + "', '" + clientHandler.getDatabaseId() + "')";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -178,12 +182,12 @@ public abstract class DatabaseUtil {
      * @return          a List of Integer containing the follower IDs
      */
     public static List<Integer> getFollowersIds(int userId) {
-        String query = "SELECT * from followers WHERE user_id = " + userId;
+        String query = "SELECT * from followers WHERE follower_id = " + userId;
         List<Integer> followersIds = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                followersIds.add(resultSet.getInt("follower_id"));
+                followersIds.add(resultSet.getInt("user_id"));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -197,11 +201,11 @@ public abstract class DatabaseUtil {
      * @return          a ProfileInfoRequest object containing the user's profile information
      */
     public static ProfileInfoRequest getProfileInfo(int userId) {
-        String query = "SELECT * from USER WHERE id = " + userId;
+        String query = "SELECT * from `user` WHERE id = " + userId;
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) return null;
-            return new ProfileInfoRequest(resultSet.getInt("id"), resultSet.getString("username"),resultSet.getString("gitLink"),resultSet.getString("instaLink"),resultSet.getString("bio"));
+            return new ProfileInfoRequest(resultSet.getInt("id"), resultSet.getString("username"), resultSet.getString("bio"), resultSet.getString("gitLink"), resultSet.getString("instaLink"));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -213,11 +217,11 @@ public abstract class DatabaseUtil {
      * @return         	description of return value
      */
     public static ProfileInfoRequest getProfileInfo(String username) {
-        String query = "SELECT * from USER WHERE username = '" + username + "'";
+        String query = "SELECT * from `user` WHERE username = '" + username + "'";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) return null;
-            return new ProfileInfoRequest(resultSet.getInt("id"), resultSet.getString("username"),resultSet.getString("gitLink"),resultSet.getString("instaLink"),resultSet.getString("bio"));
+            return new ProfileInfoRequest(resultSet.getInt("id"), resultSet.getString("username"), resultSet.getString("bio"), resultSet.getString("gitLink"), resultSet.getString("instaLink"));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -230,7 +234,7 @@ public abstract class DatabaseUtil {
      * @return                     description of return value
      */
     public static void setProfileInfo(ProfileChangeRequest profileInfoRequest,int id) {
-        String query = "UPDATE USER SET instaLink = '" + profileInfoRequest.insta + "', gitLink = '" + profileInfoRequest.git + "', bio = '" + profileInfoRequest.bio + "' WHERE id = '" + id + "'";
+        String query = "UPDATE `user` SET instaLink = '" + profileInfoRequest.insta + "', gitLink = '" + profileInfoRequest.git + "', bio = '" + profileInfoRequest.bio + "' WHERE id = '" + id + "'";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -275,15 +279,16 @@ public abstract class DatabaseUtil {
         System.out.println("GETTING FEED: " + userId);
         String query = """
                 SELECT u.username, p.post_content
-                                FROM USER u
-                                JOIN post p ON u.id = p.user_id
-                                JOIN followers f ON u.id = f.user_id OR u.id = follower_id
-                                WHERE u.id = ? AND u.id = f.follower_id OR u.id = f.user_id
-                                ORDER BY p.post_time DESC;
+                FROM `post` p
+                JOIN `user` u ON u.id = p.user_id
+                LEFT JOIN followers f ON f.follower_id = u.id
+                WHERE u.id = ? OR f.user_id = ?
+                ORDER BY p.post_time DESC;
                 """;
         ArrayList<FeedUpdateRequest.CPair> posts = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setInt(1, userId);
+            statement.setInt(2, userId);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 System.out.println("Adding new post to feed");

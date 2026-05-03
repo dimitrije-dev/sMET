@@ -1,10 +1,13 @@
 package com.example.projekatcs202;
 
 import GUI.CustomMenuBar;
+import GUI.EventsPage;
 import GUI.GuiUtil;
 import GUI.Feed;
 import GUI.LoginPage;
+import GUI.MessangerPage;
 import GUI.ProfilePage;
+import GUI.UserSettingsPage;
 import javafx.application.Application;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
@@ -34,6 +37,9 @@ public class Main extends Application {
         Feed.setPrimaryStage(stage);
         LoginPage.setPrimaryStage(stage);
         ProfilePage.setPrimaryStage(stage);
+        MessangerPage.setPrimaryStage(stage);
+        UserSettingsPage.setPrimaryStage(stage);
+        EventsPage.setPrimaryStage(stage);
         CustomMenuBar.setPrimaryStage(stage);
         GuiUtil.setPrimaryStage(stage);
 
