@@ -11,7 +11,6 @@
   <img src="https://img.shields.io/badge/Platform-JavaFX%20Desktop-111827?style=for-the-badge" alt="JavaFX Desktop" />
   <img src="https://img.shields.io/badge/Language-Java%2021-f89820?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
   <img src="https://img.shields.io/badge/UI-JavaFX%2021.0.2-4B8BBE?style=for-the-badge" alt="JavaFX 21.0.2" />
-  <img src="https://img.shields.io/badge/Database-MySQL%208.4-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8.4" />
   <img src="https://img.shields.io/badge/Build-Maven-0B3A5B?style=for-the-badge&logo=apachemaven&logoColor=white" alt="Maven" />
 </p>
 
@@ -29,11 +28,6 @@ This version introduces a substantial UI/UX rebuild and project stabilization.
 - Introduced a unified visual language (cards, spacing, typography, gradients, interaction states).
 - Added campus-focused timeline experience with right-rail widgets (`Trending`, `Upcoming`, `Who to Follow`).
 - Standardized asset loading and replaced machine-specific absolute file paths.
-- Added environment-variable based DB configuration for easier local setup:
-  - `SMET_DB_URL`
-  - `SMET_DB_USERNAME`
-  - `SMET_DB_PASSWORD`
-- Added database schema script for reproducible setup: `database/schema.sql`.
 
 ## Core Experience
 - **Campus Timeline**: real-time stream for project updates, tips, and event invites.
@@ -43,21 +37,19 @@ This version introduces a substantial UI/UX rebuild and project stabilization.
 - **Profile + Settings**: editable social identity (bio and links) with updated UX.
 
 ## Architecture At A Glance
-sMET follows a desktop client + socket server + relational persistence architecture.
+sMET follows a desktop client + socket server architecture with a dedicated persistence layer.
 
 ```mermaid
 flowchart LR
   A["JavaFX Desktop Client"] --> B["Socket Server (Java)"]
-  B --> C[(MySQL)]
-  B --> D["Auth + Feed + Profile Services"]
+  B --> C["Auth + Feed + Profile Services"]
+  C --> D["Persistence Layer"]
 ```
 
 ## Project Layout
 ```text
 sMET/
 ├── assets/                      # App icons, logos, visual resources
-├── database/
-│   └── schema.sql               # DB schema bootstrap script
 ├── docs/
 │   └── assets/                  # README branding and screenshots
 ├── src/main/java/
@@ -72,32 +64,19 @@ sMET/
 ## Getting Started
 ### 1. Prerequisites
 - JDK 21+
-- MySQL 8+
 - Maven wrapper (included)
 
-### 2. Initialize database
-```bash
-mysql -u root -p < database/schema.sql
-```
-
-### 3. Configure environment variables
-```bash
-export SMET_DB_URL="jdbc:mysql://localhost:3306/iMetDatabase"
-export SMET_DB_USERNAME="root"
-export SMET_DB_PASSWORD="1234"
-```
-
-### 4. Build project
+### 2. Build project
 ```bash
 ./mvnw -q -DskipTests compile
 ```
 
-### 5. Start server
+### 3. Start server
 ```bash
 ./mvnw -q -DskipTests org.codehaus.mojo:exec-maven-plugin:3.5.0:java -Dexec.mainClass=networking.Server
 ```
 
-### 6. Start JavaFX client
+### 4. Start JavaFX client
 ```bash
 ./mvnw -q javafx:run
 ```
@@ -105,7 +84,6 @@ export SMET_DB_PASSWORD="1234"
 ## Local Runtime Notes
 - Client host: `localhost`
 - Server port: `8080`
-- DB name: `iMetDatabase`
 
 Login behavior in current build:
 - If user does not exist, app auto-creates account on first sign-in attempt.

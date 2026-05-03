@@ -14,7 +14,7 @@ public abstract class DatabaseUtil {
     private static boolean connected = false;
     private final static String URL = System.getenv().getOrDefault("SMET_DB_URL", "jdbc:mysql://localhost:3306/iMetDatabase");
     private final static String USERNAME = System.getenv().getOrDefault("SMET_DB_USERNAME", "root");
-    private final static String PASSWORD = System.getenv().getOrDefault("SMET_DB_PASSWORD", "1234");
+    private final static String PASSWORD = System.getenv().getOrDefault("SMET_DB_PASSWORD", "");
     private static Connection connection = null;
     /**
      * Connects to the database if not already connected.
